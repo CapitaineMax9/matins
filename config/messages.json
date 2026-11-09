@@ -20,6 +20,25 @@
         6,
         7
       ]
+    },
+    {
+      "id": "35a0c6b16c4a",
+      "enabled": true,
+      "recipient": "capitaine_max_",
+      "type": "weekly",
+      "time": "16:50",
+      "texts": [
+        "cuocou"
+      ],
+      "days": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7
+      ]
     }
   ]
 }
