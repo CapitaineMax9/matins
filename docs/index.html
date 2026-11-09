@@ -1,0 +1,535 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Matins · Rappels</title>
+<meta name="theme-color" content="#5b4bdb">
+<style>
+  :root {
+    --bg: #f6f5fb; --card: #ffffff; --text: #1d1b26; --muted: #6b6880;
+    --border: #e3e1ee; --accent: #5b4bdb; --accent-text: #ffffff; --accent-soft: #ece9ff;
+    --danger: #c62f3b; --ok: #1f8a4c; --warn-bg: #fff6df; --warn-text: #7a5600;
+    --radius: 14px;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #13121a; --card: #1d1c26; --text: #ecebf3; --muted: #a09db3;
+      --border: #2f2d3c; --accent: #8e81ff; --accent-text: #13121a; --accent-soft: #2a2645;
+      --danger: #ff6b76; --ok: #4fd18b; --warn-bg: #3a3014; --warn-text: #f3d27a;
+    }
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: var(--bg); color: var(--text);
+    font: 16px/1.5 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  }
+  main { max-width: 720px; margin: 0 auto; padding: 20px 16px 96px; }
+  h1 { font-size: 1.6rem; margin: 8px 0 2px; }
+  h2 { font-size: 1.1rem; margin: 0 0 12px; }
+  p.sub { color: var(--muted); margin: 0 0 20px; }
+  .card {
+    background: var(--card); border: 1px solid var(--border); border-radius: var(--radius);
+    padding: 16px; margin-bottom: 14px;
+  }
+  label { display: block; font-weight: 600; font-size: .9rem; margin: 12px 0 6px; }
+  input[type=text], input[type=password], input[type=time], input[type=date], select, textarea {
+    width: 100%; padding: 10px 12px; font: inherit; color: var(--text);
+    background: var(--bg); border: 1px solid var(--border); border-radius: 10px;
+  }
+  textarea { min-height: 70px; resize: vertical; }
+  input:focus, select:focus, textarea:focus { outline: 2px solid var(--accent); outline-offset: 1px; }
+  button {
+    font: inherit; font-weight: 600; border: 1px solid var(--border); background: var(--card);
+    color: var(--text); padding: 9px 14px; border-radius: 10px; cursor: pointer;
+  }
+  button.primary { background: var(--accent); border-color: var(--accent); color: var(--accent-text); }
+  button.danger { color: var(--danger); }
+  button.small { padding: 5px 10px; font-size: .85rem; }
+  button:disabled { opacity: .5; cursor: default; }
+  .row { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+  .row > .grow { flex: 1 1 160px; }
+  .muted { color: var(--muted); font-size: .9rem; }
+  .help { color: var(--muted); font-size: .85rem; margin: 6px 0 0; }
+  .help a, .muted a { color: var(--accent); }
+  .days { display: flex; gap: 6px; flex-wrap: wrap; }
+  .days label {
+    margin: 0; font-weight: 600; width: 42px; height: 42px; display: grid; place-items: center;
+    border: 1px solid var(--border); border-radius: 50%; cursor: pointer; user-select: none;
+  }
+  .days input { position: absolute; opacity: 0; pointer-events: none; }
+  .days input:checked + span { color: var(--accent-text); }
+  .days label:has(input:checked) { background: var(--accent); border-color: var(--accent); }
+  .days label:has(input:focus-visible) { outline: 2px solid var(--accent); }
+  .presets { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 8px; }
+  .msg-head { display: flex; justify-content: space-between; gap: 10px; align-items: flex-start; }
+  .msg-time { font-size: 1.5rem; font-weight: 700; font-variant-numeric: tabular-nums; }
+  .msg-to { font-weight: 600; word-break: break-all; }
+  .chip {
+    display: inline-block; background: var(--accent-soft); color: var(--text);
+    border-radius: 999px; padding: 2px 10px; font-size: .8rem; margin: 2px 4px 2px 0;
+  }
+  .chip.off { background: var(--border); color: var(--muted); }
+  .texts { margin: 10px 0 0; padding-left: 18px; }
+  .texts li { margin: 2px 0; white-space: pre-wrap; word-break: break-word; }
+  .variant { position: relative; margin-bottom: 8px; }
+  .variant button { position: absolute; top: 6px; right: 6px; }
+  .variant textarea { padding-right: 44px; }
+  .switch { display: inline-flex; align-items: center; gap: 8px; margin: 0; font-weight: 600; cursor: pointer; }
+  .banner { padding: 10px 14px; border-radius: 10px; margin-bottom: 14px; font-size: .92rem; }
+  .banner.warn { background: var(--warn-bg); color: var(--warn-text); }
+  .toast {
+    position: fixed; left: 50%; bottom: 84px; transform: translateX(-50%); max-width: calc(100% - 32px);
+    background: var(--text); color: var(--bg); padding: 10px 16px; border-radius: 10px;
+    font-size: .92rem; opacity: 0; transition: opacity .2s; pointer-events: none; z-index: 10;
+  }
+  .toast.show { opacity: 1; }
+  .savebar {
+    position: fixed; left: 0; right: 0; bottom: 0; background: var(--card);
+    border-top: 1px solid var(--border); padding: 12px 16px; display: none; z-index: 5;
+  }
+  .savebar.show { display: block; }
+  .savebar .inner { max-width: 720px; margin: 0 auto; display: flex; gap: 10px; align-items: center; justify-content: space-between; }
+  details summary { cursor: pointer; font-weight: 600; }
+  ol.steps { padding-left: 20px; margin: 8px 0 0; }
+  ol.steps li { margin: 4px 0; }
+  .hidden { display: none !important; }
+  .empty { text-align: center; color: var(--muted); padding: 24px 8px; }
+</style>
+</head>
+<body>
+<main>
+  <h1>☀️ Matins</h1>
+  <p class="sub">Programme tes messages Instagram : à l'heure prévue, tu reçois sur Discord le texte prêt à copier et un lien vers la conversation.</p>
+
+  <!-- Connexion -->
+  <section class="card" id="connCard">
+    <h2>🔑 Connexion à GitHub</h2>
+    <div id="connForm">
+      <div class="row">
+        <div class="grow">
+          <label for="repoInput">Dépôt</label>
+          <input type="text" id="repoInput" placeholder="CapitaineMax9/matins" autocomplete="off">
+        </div>
+      </div>
+      <label for="tokenInput">Jeton d'accès GitHub</label>
+      <input type="password" id="tokenInput" placeholder="github_pat_…" autocomplete="off">
+      <details class="help">
+        <summary>Comment créer ce jeton ?</summary>
+        <ol class="steps">
+          <li>Ouvre <a href="https://github.com/settings/personal-access-tokens/new" target="_blank" rel="noopener">github.com/settings/personal-access-tokens/new</a>.</li>
+          <li>Nom : « matins », expiration au choix.</li>
+          <li><b>Repository access</b> → <i>Only select repositories</i> → <b>matins</b>.</li>
+          <li><b>Permissions</b> → <i>Contents</i> : <b>Read and write</b>, et <i>Actions</i> : <b>Read and write</b>.</li>
+          <li>Génère le jeton, copie-le et colle-le ici. Il reste uniquement dans ce navigateur.</li>
+        </ol>
+      </details>
+      <div class="row" style="margin-top:12px">
+        <button class="primary" id="connectBtn">Se connecter</button>
+      </div>
+    </div>
+    <div id="connInfo" class="hidden">
+      <div class="row" style="justify-content:space-between">
+        <span class="muted">Connecté à <b id="connRepo"></b></span>
+        <div class="row">
+          <button class="small" id="testBtn" title="Envoie un message de test sur Discord">🔔 Tester Discord</button>
+          <button class="small" id="logoutBtn">Se déconnecter</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <div id="app" class="hidden">
+    <div class="banner warn">
+      ⏱️ GitHub vérifie tes rappels toutes les 5 minutes, mais il peut avoir du retard (souvent 5 à 30 min). Évite les heures pile (8h00) : préfère 7h50 ou 8h07, c'est souvent plus ponctuel.
+    </div>
+
+    <section class="card">
+      <div class="row" style="justify-content:space-between">
+        <h2 style="margin:0">📅 Mes rappels</h2>
+        <button class="primary" id="addBtn">+ Nouveau rappel</button>
+      </div>
+      <label for="tzInput">Fuseau horaire</label>
+      <select id="tzInput"></select>
+    </section>
+
+    <div id="list"></div>
+
+    <!-- Formulaire -->
+    <section class="card hidden" id="editor">
+      <h2 id="editorTitle">Nouveau rappel</h2>
+      <label for="fRecipient">Pseudo Instagram du destinataire</label>
+      <input type="text" id="fRecipient" placeholder="ex. maman_officiel (sans @)" autocomplete="off" autocapitalize="off" spellcheck="false">
+
+      <div class="row">
+        <div class="grow">
+          <label for="fType">Fréquence</label>
+          <select id="fType">
+            <option value="weekly">Certains jours chaque semaine</option>
+            <option value="once">Une seule fois</option>
+          </select>
+        </div>
+        <div class="grow">
+          <label for="fTime">Heure</label>
+          <input type="time" id="fTime" value="08:00" required>
+        </div>
+      </div>
+
+      <div id="daysBlock">
+        <label>Jours</label>
+        <div class="days" id="fDays"></div>
+        <div class="presets">
+          <button type="button" class="small" data-preset="1,2,3,4,5,6,7">Tous les jours</button>
+          <button type="button" class="small" data-preset="1,2,3,4,5">Semaine</button>
+          <button type="button" class="small" data-preset="6,7">Week-end</button>
+        </div>
+      </div>
+      <div id="dateBlock" class="hidden">
+        <label for="fDate">Date</label>
+        <input type="date" id="fDate">
+      </div>
+
+      <label>Texte du message</label>
+      <div id="fTexts"></div>
+      <button type="button" class="small" id="addVariantBtn">+ Ajouter une variante</button>
+      <p class="help">S'il y a plusieurs variantes, une est choisie au hasard à chaque envoi.</p>
+
+      <label class="switch" style="margin-top:14px"><input type="checkbox" id="fEnabled" checked> Rappel actif</label>
+
+      <div class="row" style="margin-top:16px">
+        <button class="primary" id="saveEditBtn">Valider</button>
+        <button id="cancelEditBtn">Annuler</button>
+      </div>
+    </section>
+  </div>
+</main>
+
+<div class="savebar" id="savebar">
+  <div class="inner">
+    <span class="muted">Modifications non enregistrées</span>
+    <div class="row">
+      <button id="discardBtn">Annuler</button>
+      <button class="primary" id="saveBtn">💾 Enregistrer</button>
+    </div>
+  </div>
+</div>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script>
+(() => {
+  "use strict";
+  const CONFIG_PATH = "config/messages.json";
+  const STATE_PATH = "state/sent.json";
+  const WORKFLOW = "rappels.yml";
+  const DAY_NAMES = ["L", "M", "M", "J", "V", "S", "D"];
+  const DAY_LONG = ["lun", "mar", "mer", "jeu", "ven", "sam", "dim"];
+  const $ = (id) => document.getElementById(id);
+
+  const store = {
+    get(k) { try { return localStorage.getItem(k); } catch { return null; } },
+    set(k, v) { try { localStorage.setItem(k, v); } catch {} },
+    del(k) { try { localStorage.removeItem(k); } catch {} },
+  };
+
+  let repo = "", token = "";
+  let config = null, savedJson = "", sha = null, sentState = {};
+  let editingId = null;
+
+  // ---------- utilitaires ----------
+  const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+  function toast(msg, ms = 3200) {
+    const t = $("toast"); t.textContent = msg; t.classList.add("show");
+    clearTimeout(toast._t); toast._t = setTimeout(() => t.classList.remove("show"), ms);
+  }
+  function b64decode(b64) {
+    const bin = atob(b64.replace(/\s/g, ""));
+    return new TextDecoder().decode(Uint8Array.from(bin, (c) => c.charCodeAt(0)));
+  }
+  function b64encode(str) {
+    const bytes = new TextEncoder().encode(str);
+    let bin = "";
+    for (let i = 0; i < bytes.length; i++) bin += String.fromCharCode(bytes[i]);
+    return btoa(bin);
+  }
+  function newId() {
+    const a = new Uint8Array(6); crypto.getRandomValues(a);
+    return Array.from(a, (b) => b.toString(16).padStart(2, "0")).join("");
+  }
+  const cleanUser = (u) => u.trim().replace(/^@+/, "").trim();
+  const serialize = () => JSON.stringify(config, null, 2) + "\n";
+
+  async function gh(path, opts = {}) {
+    const res = await fetch(`https://api.github.com/repos/${repo}/${path}`, {
+      ...opts,
+      headers: {
+        Accept: "application/vnd.github+json",
+        Authorization: `Bearer ${token}`,
+        "X-GitHub-Api-Version": "2022-11-28",
+        ...(opts.body ? { "Content-Type": "application/json" } : {}),
+      },
+      cache: "no-store",
+    });
+    return res;
+  }
+  function explain(res) {
+    if (res.status === 401) return "Jeton invalide ou expiré.";
+    if (res.status === 403) return "Accès refusé : vérifie les permissions du jeton (Contents et Actions en lecture/écriture).";
+    if (res.status === 404) return "Dépôt ou fichier introuvable (vérifie le nom du dépôt et que le jeton y a accès).";
+    if (res.status === 409 || res.status === 422) return "Le fichier a changé entre-temps : recharge la page puis recommence.";
+    return `Erreur GitHub (HTTP ${res.status}).`;
+  }
+
+  // ---------- chargement / enregistrement ----------
+  async function loadAll() {
+    const res = await gh(`contents/${CONFIG_PATH}`);
+    if (res.status === 404) {
+      config = { timezone: "Europe/Paris", messages: [] }; sha = null;
+    } else if (!res.ok) {
+      throw new Error(explain(res));
+    } else {
+      const data = await res.json();
+      config = JSON.parse(b64decode(data.content)); sha = data.sha;
+      if (!Array.isArray(config.messages)) config.messages = [];
+      if (!config.timezone) config.timezone = "Europe/Paris";
+    }
+    savedJson = serialize();
+    try {
+      const s = await gh(`contents/${STATE_PATH}`);
+      sentState = s.ok ? JSON.parse(b64decode((await s.json()).content)) : {};
+    } catch { sentState = {}; }
+  }
+
+  async function save() {
+    const btn = $("saveBtn"); btn.disabled = true; btn.textContent = "Enregistrement…";
+    try {
+      const body = { message: "Mise à jour des rappels (interface web)", content: b64encode(serialize()) };
+      if (sha) body.sha = sha;
+      const res = await gh(`contents/${CONFIG_PATH}`, { method: "PUT", body: JSON.stringify(body) });
+      if (!res.ok) throw new Error(explain(res));
+      sha = (await res.json()).content.sha;
+      savedJson = serialize();
+      toast("✅ Rappels enregistrés sur GitHub");
+    } catch (e) {
+      toast("❌ " + e.message, 6000);
+    } finally {
+      btn.disabled = false; btn.textContent = "💾 Enregistrer"; refreshSavebar();
+    }
+  }
+
+  async function sendTest() {
+    const btn = $("testBtn"); btn.disabled = true;
+    try {
+      const res = await gh(`actions/workflows/${WORKFLOW}/dispatches`, {
+        method: "POST", body: JSON.stringify({ ref: "main", inputs: { mode: "test" } }),
+      });
+      if (!res.ok) throw new Error(explain(res));
+      toast("🔔 Test lancé : le message arrive sur Discord d'ici 1 minute environ.", 5000);
+    } catch (e) {
+      toast("❌ " + e.message, 6000);
+    } finally { btn.disabled = false; }
+  }
+
+  // ---------- affichage ----------
+  function describeWhen(m) {
+    if (m.type === "once") {
+      if (!m.date) return "une fois (date manquante)";
+      const d = new Date(m.date + "T12:00:00");
+      return "le " + d.toLocaleDateString("fr-FR", { weekday: "long", day: "numeric", month: "long", year: "numeric" });
+    }
+    const days = (m.days || []).slice().sort();
+    if (days.length === 7) return "tous les jours";
+    if (days.join() === "1,2,3,4,5") return "en semaine";
+    if (days.join() === "6,7") return "le week-end";
+    if (!days.length) return "aucun jour choisi";
+    return days.map((d) => DAY_LONG[d - 1]).join(", ");
+  }
+
+  function renderList() {
+    const list = $("list");
+    if (!config.messages.length) {
+      list.innerHTML = `<div class="card empty">Aucun rappel pour l'instant.<br>Appuie sur « + Nouveau rappel » pour commencer.</div>`;
+      return;
+    }
+    const sorted = config.messages.slice().sort((a, b) => String(a.time).localeCompare(String(b.time)));
+    list.innerHTML = sorted.map((m) => {
+      const last = sentState[m.id];
+      const lastTxt = last ? `Dernier envoi : ${new Date(last.at).toLocaleString("fr-FR", { dateStyle: "short", timeStyle: "short" })}` : "Pas encore envoyé";
+      const texts = (m.texts || []).filter((t) => t.trim());
+      return `<article class="card">
+        <div class="msg-head">
+          <div>
+            <div class="msg-time">${esc(m.time)}</div>
+            <div class="msg-to">→ @${esc(m.recipient)}</div>
+          </div>
+          <label class="switch" title="Activer / désactiver">
+            <input type="checkbox" data-toggle="${esc(m.id)}" ${m.enabled !== false ? "checked" : ""}> ${m.enabled !== false ? "Actif" : "En pause"}
+          </label>
+        </div>
+        <div style="margin-top:6px">
+          <span class="chip ${m.enabled === false ? "off" : ""}">${esc(describeWhen(m))}</span>
+          ${texts.length > 1 ? `<span class="chip">${texts.length} variantes au hasard</span>` : ""}
+        </div>
+        <ul class="texts">${texts.map((t) => `<li>${esc(t)}</li>`).join("")}</ul>
+        <div class="row" style="justify-content:space-between;margin-top:10px">
+          <span class="muted">${esc(lastTxt)}</span>
+          <div class="row">
+            <button class="small" data-edit="${esc(m.id)}">Modifier</button>
+            <button class="small danger" data-del="${esc(m.id)}">Supprimer</button>
+          </div>
+        </div>
+      </article>`;
+    }).join("");
+  }
+
+  function refreshSavebar() {
+    $("savebar").classList.toggle("show", !!config && serialize() !== savedJson);
+  }
+  function rerender() { renderList(); refreshSavebar(); }
+
+  function fillTimezones() {
+    const sel = $("tzInput");
+    let zones = ["Europe/Paris", "Europe/Brussels", "Europe/Zurich", "America/Montreal", "Africa/Casablanca", "Africa/Algiers", "Africa/Tunis", "Africa/Dakar", "Africa/Abidjan", "Indian/Reunion", "America/Martinique", "America/Guadeloupe", "Pacific/Noumea", "Pacific/Tahiti", "UTC"];
+    try { if (Intl.supportedValuesOf) zones = Intl.supportedValuesOf("timeZone"); } catch {}
+    if (!zones.includes(config.timezone)) zones.unshift(config.timezone);
+    sel.innerHTML = zones.map((z) => `<option ${z === config.timezone ? "selected" : ""}>${esc(z)}</option>`).join("");
+  }
+
+  // ---------- formulaire ----------
+  function buildDays(selected) {
+    $("fDays").innerHTML = DAY_NAMES.map((n, i) =>
+      `<label title="${DAY_LONG[i]}"><input type="checkbox" value="${i + 1}" ${selected.includes(i + 1) ? "checked" : ""}><span>${n}</span></label>`
+    ).join("");
+  }
+  function addVariant(text = "") {
+    const div = document.createElement("div");
+    div.className = "variant";
+    div.innerHTML = `<textarea placeholder="Ton message…"></textarea><button type="button" class="small danger" title="Supprimer cette variante">✕</button>`;
+    div.querySelector("textarea").value = text;
+    div.querySelector("button").onclick = () => {
+      if ($("fTexts").children.length > 1) div.remove(); else div.querySelector("textarea").value = "";
+    };
+    $("fTexts").appendChild(div);
+  }
+  function syncTypeFields() {
+    const once = $("fType").value === "once";
+    $("daysBlock").classList.toggle("hidden", once);
+    $("dateBlock").classList.toggle("hidden", !once);
+  }
+  function openEditor(m) {
+    editingId = m ? m.id : null;
+    $("editorTitle").textContent = m ? "Modifier le rappel" : "Nouveau rappel";
+    $("fRecipient").value = m ? m.recipient : "";
+    $("fType").value = m && m.type === "once" ? "once" : "weekly";
+    $("fTime").value = m ? m.time : "08:00";
+    $("fDate").value = m && m.date ? m.date : new Date(Date.now() - new Date().getTimezoneOffset() * 60000).toISOString().slice(0, 10);
+    buildDays(m && m.days ? m.days : [1, 2, 3, 4, 5, 6, 7]);
+    $("fTexts").innerHTML = "";
+    const texts = m && m.texts && m.texts.length ? m.texts : [""];
+    texts.forEach(addVariant);
+    $("fEnabled").checked = m ? m.enabled !== false : true;
+    syncTypeFields();
+    $("editor").classList.remove("hidden");
+    $("editor").scrollIntoView({ behavior: "smooth", block: "start" });
+    $("fRecipient").focus({ preventScroll: true });
+  }
+  function closeEditor() { $("editor").classList.add("hidden"); editingId = null; }
+
+  function submitEditor() {
+    const recipient = cleanUser($("fRecipient").value);
+    const type = $("fType").value;
+    const time = $("fTime").value;
+    const days = Array.from($("fDays").querySelectorAll("input:checked"), (i) => Number(i.value));
+    const date = $("fDate").value;
+    const texts = Array.from($("fTexts").querySelectorAll("textarea"), (t) => t.value.trim()).filter(Boolean);
+
+    if (!/^[A-Za-z0-9._]{1,30}$/.test(recipient)) return toast("⚠️ Pseudo Instagram invalide (lettres, chiffres, points et _ seulement).", 5000);
+    if (!/^\d{2}:\d{2}$/.test(time)) return toast("⚠️ Choisis une heure.");
+    if (type === "weekly" && !days.length) return toast("⚠️ Choisis au moins un jour.");
+    if (type === "once" && !date) return toast("⚠️ Choisis une date.");
+    if (!texts.length) return toast("⚠️ Écris au moins un message.");
+
+    const m = { id: editingId || newId(), enabled: $("fEnabled").checked, recipient, type, time, texts };
+    if (type === "weekly") m.days = days; else m.date = date;
+
+    const idx = config.messages.findIndex((x) => x.id === m.id);
+    if (idx >= 0) config.messages[idx] = m; else config.messages.push(m);
+    closeEditor(); rerender();
+    toast("Rappel prêt : pense à appuyer sur « Enregistrer ».");
+  }
+
+  // ---------- événements ----------
+  $("connectBtn").onclick = async () => {
+    repo = $("repoInput").value.trim().replace(/^https?:\/\/github\.com\//, "").replace(/\/$/, "");
+    token = $("tokenInput").value.trim();
+    if (!/^[\w.-]+\/[\w.-]+$/.test(repo)) return toast("⚠️ Dépôt au format propriétaire/nom, ex. CapitaineMax9/matins");
+    if (!token) return toast("⚠️ Colle ton jeton GitHub.");
+    await start(true);
+  };
+  $("logoutBtn").onclick = () => {
+    if (config && serialize() !== savedJson && !confirm("Des modifications ne sont pas enregistrées. Se déconnecter quand même ?")) return;
+    store.del("matins.token"); token = ""; config = null;
+    $("app").classList.add("hidden"); $("connInfo").classList.add("hidden"); $("connForm").classList.remove("hidden");
+    $("tokenInput").value = ""; refreshSavebar();
+  };
+  $("testBtn").onclick = sendTest;
+  $("addBtn").onclick = () => openEditor(null);
+  $("cancelEditBtn").onclick = closeEditor;
+  $("saveEditBtn").onclick = submitEditor;
+  $("addVariantBtn").onclick = () => addVariant("");
+  $("fType").onchange = syncTypeFields;
+  document.querySelectorAll("[data-preset]").forEach((b) => b.onclick = () => buildDays(b.dataset.preset.split(",").map(Number)));
+  $("tzInput").onchange = (e) => { config.timezone = e.target.value; refreshSavebar(); };
+  $("saveBtn").onclick = save;
+  $("discardBtn").onclick = () => { config = JSON.parse(savedJson); closeEditor(); fillTimezones(); rerender(); };
+
+  $("list").addEventListener("click", (e) => {
+    const t = e.target.closest("[data-edit],[data-del]");
+    if (!t) return;
+    if (t.dataset.edit) openEditor(config.messages.find((m) => m.id === t.dataset.edit));
+    if (t.dataset.del && confirm("Supprimer ce rappel ?")) {
+      config.messages = config.messages.filter((m) => m.id !== t.dataset.del);
+      if (editingId === t.dataset.del) closeEditor();
+      rerender();
+    }
+  });
+  $("list").addEventListener("change", (e) => {
+    const id = e.target.dataset && e.target.dataset.toggle;
+    if (!id) return;
+    const m = config.messages.find((x) => x.id === id);
+    if (m) { m.enabled = e.target.checked; rerender(); }
+  });
+  window.addEventListener("beforeunload", (e) => {
+    if (config && serialize() !== savedJson) { e.preventDefault(); e.returnValue = ""; }
+  });
+
+  async function start(fromForm) {
+    const btn = $("connectBtn"); btn.disabled = true; btn.textContent = "Connexion…";
+    try {
+      await loadAll();
+      store.set("matins.repo", repo); store.set("matins.token", token);
+      $("connRepo").textContent = repo;
+      $("connForm").classList.add("hidden"); $("connInfo").classList.remove("hidden");
+      $("app").classList.remove("hidden");
+      fillTimezones(); rerender();
+      if (fromForm) toast("✅ Connecté");
+    } catch (e) {
+      toast("❌ " + e.message, 6000);
+      if (!fromForm) { $("tokenInput").value = token; }
+    } finally { btn.disabled = false; btn.textContent = "Se connecter"; }
+  }
+
+  // Dépôt par défaut : déduit de l'adresse GitHub Pages (pseudo.github.io/depot/).
+  function guessRepo() {
+    const m = location.hostname.match(/^([\w-]+)\.github\.io$/i);
+    const first = location.pathname.split("/").filter(Boolean)[0];
+    if (m && first) return `${m[1]}/${first}`;
+    return "CapitaineMax9/matins";
+  }
+  repo = store.get("matins.repo") || guessRepo();
+  token = store.get("matins.token") || "";
+  $("repoInput").value = repo;
+  if (token) start(false);
+})();
+</script>
+</body>
+</html>

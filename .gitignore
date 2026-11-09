@@ -17,3 +17,8 @@ desktop.ini
 *.log
 *.tmp
 tmp/
+
+# Python
+__pycache__/
+*.pyc
+.venv/
