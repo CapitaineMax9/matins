@@ -1,0 +1,19 @@
+# Fichiers système
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Éditeurs / IDE
+.vscode/
+.idea/
+*.swp
+*~
+
+# Fichiers d'environnement et secrets
+.env
+.env.*
+
+# Journaux et fichiers temporaires
+*.log
+*.tmp
+tmp/
