@@ -6,6 +6,11 @@
       "enabled": true,
       "recipient": "pseudo_instagram",
       "type": "weekly",
+      "time": "09:00",
+      "texts": [
+        "Bonjour ☀️ Bonne journée !",
+        "Coucou, passe une super journée !"
+      ],
       "days": [
         1,
         2,
@@ -14,11 +19,6 @@
         5,
         6,
         7
-      ],
-      "time": "08:00",
-      "texts": [
-        "Bonjour ☀️ Bonne journée !",
-        "Coucou, passe une super journée !"
       ]
     }
   ]
