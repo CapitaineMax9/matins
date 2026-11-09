@@ -3,10 +3,18 @@
   "messages": [
     {
       "id": "exemple",
-      "enabled": false,
+      "enabled": true,
       "recipient": "pseudo_instagram",
       "type": "weekly",
-      "days": [1, 2, 3, 4, 5, 6, 7],
+      "days": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7
+      ],
       "time": "08:00",
       "texts": [
         "Bonjour ☀️ Bonne journée !",
